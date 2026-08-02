@@ -63,6 +63,72 @@ def genre_similarity(genre_a: str, genre_b: str) -> float:
     return round(string_sim, 2)
 
 
+# Mood Embedding Space: 2D coordinates (valence, energy)
+# Enables semantic similarity instead of all-or-nothing matching
+MOOD_EMBEDDINGS = {
+    "happy": (0.9, 0.7),      # High valence, high energy
+    "energetic": (0.7, 0.95),  # Moderate valence, very high energy
+    "excited": (0.8, 0.9),     # High valence, very high energy
+    "uplifting": (0.85, 0.75), # High valence, high energy
+
+    "calm": (0.6, 0.2),        # Moderate valence, low energy
+    "chill": (0.55, 0.25),     # Moderate valence, low energy
+    "relaxed": (0.6, 0.3),     # Moderate valence, low energy
+    "peaceful": (0.65, 0.15),  # Moderate-high valence, very low energy
+
+    "melancholic": (0.3, 0.4), # Low valence, moderate energy
+    "sad": (0.2, 0.3),         # Very low valence, low energy
+    "moody": (0.35, 0.5),      # Low valence, moderate energy
+    "introspective": (0.4, 0.35), # Low valence, low energy
+
+    "intense": (0.4, 0.95),    # Low valence, very high energy
+    "aggressive": (0.2, 0.9),  # Very low valence, very high energy
+    "focused": (0.5, 0.7),     # Moderate valence, high energy
+
+    "romantic": (0.75, 0.5),   # High valence, moderate energy
+    "dreamy": (0.65, 0.4),     # Moderate-high valence, low-moderate energy
+    "nostalgic": (0.45, 0.45), # Moderate valence, moderate energy
+}
+
+
+def mood_similarity(mood_a: str, mood_b: str) -> float:
+    """
+    Compute semantic similarity between two moods using embedding distance.
+
+    MOOD EMBEDDINGS: Moods are mapped to 2D space (valence, energy).
+    Similarity = 1.0 - (euclidean_distance / max_distance)
+
+    - Exact match: 1.0
+    - Very similar (calm ↔ chill): 0.85-0.99
+    - Moderately similar (calm ↔ peaceful): 0.5-0.85
+    - Different (calm ↔ intense): 0.0-0.5
+    """
+    if not mood_a or not mood_b:
+        return 0.0
+
+    a = mood_a.lower().strip()
+    b = mood_b.lower().strip()
+
+    if a == b:
+        return 1.0
+
+    # Get embeddings (default to center if unknown)
+    embed_a = MOOD_EMBEDDINGS.get(a, (0.5, 0.5))
+    embed_b = MOOD_EMBEDDINGS.get(b, (0.5, 0.5))
+
+    # Euclidean distance in 2D space
+    dx = embed_a[0] - embed_b[0]
+    dy = embed_a[1] - embed_b[1]
+    distance = math.sqrt(dx**2 + dy**2)
+
+    # Maximum distance is diagonal: sqrt(1^2 + 1^2) ≈ 1.414
+    max_distance = math.sqrt(2)
+
+    # Convert distance to similarity
+    similarity = 1.0 - (distance / max_distance)
+    return round(max(0.0, similarity), 2)
+
+
 @dataclass
 class Song:
     """
@@ -209,17 +275,23 @@ def _compute_score(user_prefs: Dict, song: Dict, weights: Dict, k: float = 1.0) 
         elif similarity > 0.7:
             reasons.append(f"✓ {feature} good match ({song_val:.2f})")
 
-    mood_match = song['mood'] == user_prefs.get('mood')
+    # MOOD EMBEDDINGS: Fuzzy mood matching using semantic similarity
+    mood_sim = mood_similarity(song['mood'], user_prefs.get('mood', ''))
+    mood_contribution = weights['mood'] * mood_sim
+    score += mood_contribution
+    contributions['mood'] = (mood_contribution, mood_sim, song['mood'], user_prefs.get('mood'))
 
-    if mood_match:
-        score += weights['mood']
-        contributions['mood'] = (weights['mood'], 1.0, song['mood'], user_prefs.get('mood'))
-        reasons.append(f"🎭 mood matches ({song['mood']})")
+    if mood_sim >= 0.95:
+        reasons.append(f"🎭 mood matches exactly ({song['mood']})")
+    elif mood_sim >= 0.7:
+        reasons.append(f"🎭 mood very similar ({song['mood']} ≈ {user_prefs.get('mood')})")
+    elif mood_sim >= 0.4:
+        reasons.append(f"~ mood somewhat similar ({song['mood']} ↔ {user_prefs.get('mood')})")
     else:
-        mood_penalty = weights['mood_mismatch']
+        # Proportional penalty: more penalty for very different moods
+        mood_penalty = weights['mood_mismatch'] * (1.0 - mood_sim)
         score += mood_penalty
-        contributions['mood'] = (mood_penalty, 0.0, song['mood'], user_prefs.get('mood'))
-        reasons.append(f"⚠️ mood mismatch ({song['mood']} ≠ {user_prefs.get('mood')})")
+        reasons.append(f"⚠️ mood different ({song['mood']} ≠ {user_prefs.get('mood')})")
 
     # SEMANTIC GENRE SIMILARITY: Fuzzy genre matching (replaces all-or-nothing)
     genre_sim = genre_similarity(song['genre'], user_prefs.get('genre', ''))

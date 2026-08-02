@@ -105,33 +105,44 @@ These hooks are configured in `.claude/settings.json` to prevent breaking change
 
 ## Core Improvements (Assignment Focus)
 
-These are the high-impact improvements to implement:
+Foundation for agentic music recommendation system with learning loop.
 
-### 1. **Semantic Genre Similarity** (In Progress)
+### 1. **Semantic Genre Similarity** ✅ COMPLETE
 **Goal**: Allow "synthwave" to get partial credit for matching "electronic"  
-**Problem**: Genre matching is all-or-nothing (0 or 2.3 points)  
-**Solution**: Use fuzzy string matching or genre embeddings for similarity scores  
-**Test**: `test_genre_similarity_crossover_fuzzy()` will validate partial credit
+**Solution**: Hybrid fuzzy matching (explicit relationships + string similarity)  
+**Result**: Genre scores now 0.0-2.3 (proportional) instead of 0 or 2.3  
+**Impact**: Enables cross-genre discovery while respecting preferences  
+**Tests**: 13 new tests, all passing  
+**See**: `SEMANTIC_GENRE_SIMILARITY.md`
 
-### 2. **Mood Embeddings** (Planned)
+### 2. **Mood Embeddings** (Next)
 **Goal**: "calm", "chill", "relaxed" should be semantically similar  
 **Problem**: Moods are exact-match (+1.0 or -0.5), no similarity metric  
 **Solution**: Map moods to 2D embedding space (valence × intensity)  
-**Test**: `test_mood_similarity_semantic()` will validate embeddings
+**Example**: 
+  - Valence axis: sad ←→ happy
+  - Energy axis: calm ←→ energetic
+  - "calm" vs "chill" distance ≈ 0.2 (very similar)
+  - "calm" vs "intense" distance ≈ 0.8 (different)
 
-### 3. **Behavioral Signals** (Planned)
-**Goal**: Learn from skip/replay rates instead of static preferences  
-**Problem**: System doesn't learn from user actions  
-**Solution**: Track user behavior and adjust weights dynamically  
-**Test**: `test_behavioral_learning_updates_weights()` will validate learning
+### 3. **Agentic Feedback Loop** (After mood embeddings)
+**Goal**: System learns from user feedback and improves recommendations  
+**Components**:
+  1. **Feedback Analyzer Agent** — Parse "I liked X but too energetic" with LLM
+  2. **Search Agent** — Find recommendations with adjusted weights
+  3. **Validator Agent** — Check if results match feedback
+  4. **Learning Agent** — Update system weights based on validation
+**Impact**: Turns static system into one that learns and adapts
 
 ## Active Experiments & Improvements
 
-**Current work:**
-- [x] Test suite improvements & bug fixes (✅ Complete, all 25 tests pass)
-- [ ] Semantic genre similarity (fuzzy matching or embeddings)
-- [ ] Mood embeddings (semantic space)
-- [ ] Behavioral signal integration (skip/replay tracking)
+**Progress:**
+- [x] Test suite improvements & bug fixes (✅ Complete)
+- [x] Semantic genre similarity (✅ Complete, 13 tests)
+- [ ] Mood embeddings (↓ Next)
+- [ ] Agentic feedback loop integration
+- [ ] Logging & guardrails system
+- [ ] Reproducible setup & documentation
 
 ## Guidance for Claude Code
 
