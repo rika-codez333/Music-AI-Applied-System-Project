@@ -1,52 +1,100 @@
-# 🎵 Music Recommender Simulation
+# 🎵 Music AI Recommender System — AI110 Applied AI Systems Project
 
-## Project Summary
+A **content-based music recommender system** with **semantic understanding** and **agentic learning capabilities**. Built to demonstrate advanced AI features: Agentic Workflow, RAG, Reliability Systems, and Adaptive Learning.
 
-This project builds a **content-based music recommender system** that predicts which songs a user will love by analyzing audio features and emotional attributes. The system models songs as 10-dimensional vectors (genre, mood, energy, valence, danceability, tempo, acousticness, and metadata) and users as preference profiles with favorite genre, mood, target energy level, and acoustic preferences. Using **proximity-based Gaussian scoring**, it computes a match score for each song that rewards songs close to the user's taste without penalizing diversity. The system is designed to be interpretable (every recommendation includes explanations), lightweight (no external ML models), and tunable (weights and matching parameters can be adjusted).
+## ✅ Project Status: COMPLETE
 
-This mirrors how real-world platforms like Spotify work on their recommendation backend: they blend collaborative filtering (what similar users like) with content-based filtering (what this song is actually like) and explicit user feedback (likes, skips, playlists) to serve personalized recommendations at scale.
+All 3 core phases implemented and tested with 84 passing tests:
+
+| Phase | Feature | Tests | Status |
+|-------|---------|-------|--------|
+| 1 | Semantic Genre Similarity | 13 | ✅ Complete |
+| 2 | Mood Embeddings | 18 | ✅ Complete |
+| 3 | Agentic Feedback Loop | 24 | ✅ Complete |
+| — | Core Recommender | 25 | ✅ Complete |
+| — | Playlist Management | 4 | ✅ Complete |
+| **TOTAL** | **All Tests** | **84** | **✅ All Passing** |
+
+## 🚀 Quick Start
+
+```bash
+# Install & test
+python3 -m pytest -v
+
+# Run recommendations
+python3 -m src.main
+
+# Test adversarial profiles
+python3 src/adversarial_test.py
+```
+
+## 🎯 Three Advanced AI Features
+
+### 1. Semantic Genre Similarity ✅ COMPLETE
+
+**Problem**: "synthwave" and "electronic" treated as different.  
+**Solution**: Fuzzy genre matching (0.75 similarity score).
+
+```
+User prefers: electronic
+Song is:      synthwave
+Before:       0.0 (blocked)
+After:        1.72 (75% credit, discovery enabled)
+```
+
+**Key Achievement**: Genre scores now continuous 0.0-2.3 instead of binary.  
+**See**: [SEMANTIC_GENRE_SIMILARITY.md](SEMANTIC_GENRE_SIMILARITY.md)
 
 ---
 
-## How The System Works
+### 2. Mood Embeddings ✅ COMPLETE
 
-### Real-World Context
-Streaming platforms like Spotify and YouTube Music use two main approaches to recommend songs: **collaborative filtering** (analyzing what similar users like) and **content-based filtering** (analyzing song attributes). This system implements **content-based filtering** because it works well with limited user data and is interpretable—you can explain *why* a song was recommended. Real-world systems often blend both approaches and add a third layer: **user behavior data** (plays, skips, likes). Our version prioritizes **audio features** (energy, valence, danceability) as the foundation for predicting musical "vibe," since these directly capture what makes a song feel right for a given mood or context.
+**Problem**: "calm", "chill", "relaxed" treated as different.  
+**Solution**: 2D embedding space (valence × energy).
 
-### System Architecture
+```
+Mood space:
+    energetic (1.0)
+         ↑
+    intense (0.4, 0.95)    excited (0.8, 0.9)
+         │
+calm ←───•───→ happy (0.9, 0.7)
+(0.6, 0.2)
+         │
+      sad (0.2, 0.3)
+         ↓
+      calm (0.0)
+```
 
-**Song Features** (10 attributes per song):
-- **Categorical**: `genre`, `mood` — semantic labels
-- **Numeric Audio Features**:
-  - `energy` (0–1): Intensity/loudness of track
-  - `valence` (0–1): Emotional positivity (sad → happy)
-  - `danceability` (0–1): Groove and rhythm suitability
-  - `tempo_bpm` (60–152): Speed in beats per minute
-  - `acousticness` (0–1): Acoustic vs. electronic production
-- **Metadata**: `id`, `title`, `artist`
+**Example Similarities**:
+- calm ↔ calm: 1.00 (exact)
+- calm ↔ chill: 0.95 (very similar)
+- calm ↔ intense: 0.45 (opposite)
 
-**UserProfile Storage**:
-The system represents a user's taste through four core preferences:
-- `favorite_genre` — preferred music category (e.g., "pop", "lofi")
-- `favorite_mood` — preferred emotional context (e.g., "chill", "intense")
-- `target_energy` — ideal energy level (0–1 scale, e.g., 0.8 for high-energy)
-- `likes_acoustic` — boolean for acoustic vs. electronic preference
+**Key Achievement**: Mood scores now proportional 0.0-1.0 instead of binary.  
+**See**: [MOOD_EMBEDDINGS.md](MOOD_EMBEDDINGS.md)
 
-**Scoring Algorithm** (Content-Based Proximity Matching):
-Each song receives a score based on how close its audio features match the user's preferences.
+---
 
-### Algorithm Recipe (Option C: Improved Genre Coherence)
+### 3. Agentic Feedback Loop ✅ COMPLETE
 
-**Weights per Feature** (maximum score: ~7.9):
-| Feature | Weight | Scoring Method |
-|---------|--------|-----------------|
-| Genre | 2.3 | Exact match: +2.3 if match, 0 otherwise |
-| Mood | 1.0 | Exact match: +1.0 if match, **-0.5 if mismatch** |
-| Energy | 1.2 | Gaussian similarity: 1.2 × exp(-k × distance²) |
-| Danceability | 1.2 | Gaussian similarity: 1.2 × exp(-k × distance²) |
-| Valence | 1.0 | Gaussian similarity: 1.0 × exp(-k × distance²) |
-| Tempo (BPM) | 0.6 | Gaussian similarity: 0.6 × exp(-k × distance²) |
-| Acousticness | 0.6 | Gaussian similarity: 0.6 × exp(-k × distance²) |
+**Problem**: System never learned from feedback.  
+**Solution**: Full Plan→Act→Validate→Learn workflow.
+
+```
+User: "I liked Song X but wanted something calmer"
+  ↓ [PLAN: Parse feedback]
+→ Adjustment: energy_lower, target=0.3
+  ↓ [ACT: Adjust preferences]
+→ Top-5 songs with energy=0.3 instead of 0.8
+  ↓ [VALIDATE: Check if worked]
+→ Energy decreased ✓ Confidence: 0.85
+  ↓ [LEARN: Update embeddings]
+→ MOOD_EMBEDDINGS["calm"] energy: 0.20→0.18
+```
+
+**Key Achievement**: System learns from feedback and improves over time.  
+**See**: [AGENTIC_FEEDBACK_LOOP.md](AGENTIC_FEEDBACK_LOOP.md)
 
 **Formula**:
 ```
