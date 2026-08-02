@@ -15,6 +15,39 @@ All 3 core phases implemented and tested with 84 passing tests:
 | — | Playlist Management | 4 | ✅ Complete |
 | **TOTAL** | **All Tests** | **84** | **✅ All Passing** |
 
+---
+
+## 📖 Table of Contents
+
+**Getting Started**
+- [🚀 Quick Start](#-quick-start) — Run the system in 3 commands
+- [📁 File Guide](#-need-help-navigating) — What each file does → [FILES_REFERENCE.md](FILES_REFERENCE.md)
+
+**Understanding the System**
+- [🎯 Three Advanced AI Features](#-three-advanced-ai-features) — What we built
+- [🏗️ Architecture Overview](#-architecture-overview) — How it works
+- [⚙️ Setup Instructions](#-setup-instructions) — Install & configure
+- [💬 Sample Interactions](#-sample-interactions) — Real examples
+- [🎯 Design Decisions](#-design-decisions--tradeoffs) — Why we built it this way
+
+**Execution & Proof**
+- [✅ Reproducible Execution Evidence](#-reproducible-execution-evidence) — Live test results (6 test cases)
+- [🧪 Testing Summary](#-testing-summary) — What worked, what didn't
+
+**For Grading & Portfolio**
+- [📊 Design Decisions & Tradeoffs](#-design-decisions--tradeoffs) — Engineering choices
+- [Limitations and Risks](#limitations-and-risks) — Known constraints
+- [Reflection](#reflection) — What I learned
+- [FILES_REFERENCE.md](FILES_REFERENCE.md) — One-page guide to every file
+
+**Stretch Features (+6 points)**
+- [STRETCH_FEATURES.md](STRETCH_FEATURES.md) — Documentation of bonus work
+- [ai_interactions.md](ai_interactions.md) — Agentic workflow traces (+2)
+- [tests/test_harness.py](tests/test_harness.py) — Evaluation script (+2)
+- [scripts/strategy_specialization_demo.py](scripts/strategy_specialization_demo.py) — Strategy proof (+2)
+
+---
+
 ## 🚀 Quick Start
 
 ```bash

@@ -1,6 +1,9 @@
 ╔═══════════════════════════════════════════════════════════════════════════════╗
-║                   AGENTIC FEEDBACK LOOP WORKFLOW                              ║
-║           Plan → Act → Validate → Learn (with Safety Gates)                   ║
+║                 🤖 AGENTIC FEEDBACK LOOP WORKFLOW                             ║
+║              Plan → Act → Validate → Learn (with Safety Gates)                ║
+║                                                                               ║
+║  📌 Best for: Technical interviews, LinkedIn posts, system explanations      ║
+║  ⏱️  Read time: 5-7 minutes                                                   ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 
 
