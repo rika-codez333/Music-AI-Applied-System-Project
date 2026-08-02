@@ -1,0 +1,108 @@
+graph TD
+    subgraph Input["🎵 INPUT LAYER"]
+        UP["User Profile<br/>(genre, mood, energy, etc.)"]
+        FB["User Feedback<br/>(natural language)"]
+    end
+
+    subgraph Planning["📋 PLAN PHASE<br/>(Feedback Analyzer)"]
+        PA["Parse Feedback<br/>src/feedback.py"]
+        FI["Extract FeedbackIntent<br/>(type, target, confidence)"]
+    end
+
+    subgraph Acting["⚙️ ACT PHASE<br/>(Search & Recommend)"]
+        AP["Apply Adjustment<br/>to User Profile"]
+        REC["Generate Recommendations<br/>src/recommender.py<br/>Semantic Genre + Mood Embeddings"]
+    end
+
+    subgraph Validating["✓ VALIDATE PHASE<br/>(Quality Check)"]
+        VR["Validate Recommendations<br/>src/learner.py<br/>Check: Energy changed?<br/>Mood shifted? Tone adjusted?"]
+        CONF["Confidence Score<br/>(0.0-1.0)"]
+    end
+
+    subgraph Learning["🧠 LEARN PHASE<br/>(Embedding Update)"]
+        LC["Learn from Validated Feedback<br/>src/learner.py::EmbeddingLearner"]
+        EU["Update MOOD_EMBEDDINGS<br/>Conservative (rate=0.05)"]
+    end
+
+    subgraph Storage["💾 DATA LAYER"]
+        SONGS["Song Database<br/>68 songs × 14 features"]
+        EMBED["MOOD_EMBEDDINGS<br/>17 moods × 2D space"]
+        GENRL["GENRE_RELATIONSHIPS<br/>Semantic genre map"]
+        MEM["Feedback Memory<br/>Learning history"]
+    end
+
+    subgraph Testing["🧪 TESTING & VALIDATION"]
+        T1["Parser Tests<br/>10 tests"]
+        T2["Validator Tests<br/>5 tests"]
+        T3["Learner Tests<br/>5 tests"]
+        T4["Recommender Tests<br/>25 tests"]
+        T5["Integration Tests<br/>24 tests"]
+        ALLTEST["All 84 Tests ✅"]
+    end
+
+    subgraph Output["📊 OUTPUT LAYER"]
+        OREC["Original Recommendations<br/>(baseline)"]
+        AREC["Adjusted Recommendations<br/>(after feedback)"]
+        LEARN_STATS["Learning Statistics<br/>(accuracy, embeddings_updated)"]
+    end
+
+    subgraph Human["👤 HUMAN IN THE LOOP"]
+        EVAL["User Evaluates<br/>Are recommendations better?"]
+        DECIDE["User Validates<br/>Accept or Reject?"]
+    end
+
+    %% Data Flow
+    UP --> PA
+    FB --> PA
+    PA --> FI
+    FI --> AP
+    UP --> AP
+    AP --> REC
+    SONGS --> REC
+    EMBED --> REC
+    GENRL --> REC
+    REC --> OREC
+    REC --> AREC
+    OREC --> VR
+    AREC --> VR
+    VR --> CONF
+    CONF --> |confidence > 0.6| LC
+    CONF --> |confidence ≤ 0.6| Output
+    LC --> EU
+    EU --> EMBED
+    EU --> MEM
+    AREC --> EVAL
+    EVAL --> DECIDE
+    DECIDE --> |feedback loop| FB
+
+    %% Testing connections
+    PA -.-> T1
+    VR -.-> T2
+    LC -.-> T3
+    REC -.-> T4
+    FI -.-> T5
+    T1 --> ALLTEST
+    T2 --> ALLTEST
+    T3 --> ALLTEST
+    T4 --> ALLTEST
+    T5 --> ALLTEST
+    ALLTEST -.-> |validated| Output
+
+    %% Output generation
+    CONF --> LEARN_STATS
+    MEM --> LEARN_STATS
+
+    %% Styling
+    classDef input fill:#e1f5ff,stroke:#0277bd,stroke-width:2px
+    classDef phase fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef storage fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef testing fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    classDef output fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef human fill:#fff9c4,stroke:#f9a825,stroke-width:2px
+
+    class UP,FB input
+    class PA,FI,AP,REC,VR,CONF,LC,EU phase
+    class SONGS,EMBED,GENRL,MEM storage
+    class T1,T2,T3,T4,T5,ALLTEST testing
+    class OREC,AREC,LEARN_STATS output
+    class EVAL,DECIDE human
