@@ -1,7 +1,14 @@
 # Model Card: Music AI Recommender System (Enhanced)
 
-**Project**: Music AI Recommender System (AI110 Applied AI Systems)  
+## Original Project Identification
+
+**Original Project Name**: Music Recommender Simulation  
+**Original Goals**: Built a content-based music recommendation engine that scored 68 songs across 14 audio features (energy, tempo, valence, danceability, etc.) to match user preferences using proximity-based Gaussian scoring. The system supported 6 different recommendation strategies via the Strategy pattern and applied diversity penalties to prevent artist/genre clustering.
+
 **Enhanced Version**: With Semantic Genre Similarity, Mood Embeddings, Agentic Feedback Loop  
+**Enhancement Goal**: Transform the static recommender into an adaptive learning system that learns from user feedback and improves over time.
+
+**Project Status**: Music AI Recommender System (AI110 Applied AI Systems)  
 **Date**: 2026-08-02  
 **Status**: Production-Ready | 104/104 Tests Passing
 
