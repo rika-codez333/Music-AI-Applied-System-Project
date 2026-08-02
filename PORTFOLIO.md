@@ -8,7 +8,7 @@
 
 ## 📌 GitHub Repository
 
-**Repository URL**: [Link to GitHub will be added after pushing to GitHub]
+**Repository URL**: (https://github.com/rika-codez333/Music-AI-Applied-System-Project)
 
 **Current Project Location**: `/Users/rikaraxkz/Desktop/CodePath/AI110/Music-AI-Applied-System-Project`
 
