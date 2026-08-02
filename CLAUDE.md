@@ -123,24 +123,25 @@ Foundation for agentic music recommendation system with learning loop.
 **Tests**: 18 new tests, all passing  
 **See**: `MOOD_EMBEDDINGS.md`
 
-### 3. **Agentic Feedback Loop** (After mood embeddings)
+### 3. **Agentic Feedback Loop** ✅ COMPLETE
 **Goal**: System learns from user feedback and improves recommendations  
-**Components**:
-  1. **Feedback Analyzer Agent** — Parse "I liked X but too energetic" with LLM
-  2. **Search Agent** — Find recommendations with adjusted weights
-  3. **Validator Agent** — Check if results match feedback
-  4. **Learning Agent** — Update system weights based on validation
-**Impact**: Turns static system into one that learns and adapts
+**Solution**: Plan → Act → Validate → Learn orchestration pattern  
+**Result**: System adapts to user preferences; embeddings improve with feedback  
+**Impact**: Turns static recommender into learning system  
+**Tests**: 24 comprehensive tests, all passing  
+**See**: `AGENTIC_FEEDBACK_LOOP.md`
 
 ## Active Experiments & Improvements
 
 **Progress:**
 - [x] Test suite improvements & bug fixes (✅ Complete)
 - [x] Semantic genre similarity (✅ Complete, 13 tests)
-- [ ] Mood embeddings (↓ Next)
-- [ ] Agentic feedback loop integration
+- [x] Mood embeddings (✅ Complete, 18 tests)
+- [x] Agentic feedback loop (✅ Complete, 24 tests)
 - [ ] Logging & guardrails system
 - [ ] Reproducible setup & documentation
+
+**Overall Status**: All 3 core phases complete. 84/84 tests passing (60 original + 24 new feedback loop tests).
 
 ## Guidance for Claude Code
 
