@@ -1,0 +1,94 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You're editing a core algorithm file (src/*). This may change how recommendations are scored. Are you intentionally modifying the core algorithm? Confirm: yes to proceed, no to cancel.",
+            "if": "Edit(src/recommender.py|src/main.py)"
+          },
+          {
+            "type": "prompt",
+            "prompt": "You're modifying the song catalog (data/songs.csv). Are all new songs properly formatted with all required features (genre, mood, energy, valence, danceability, tempo_bpm, acousticness, popularity, release_decade, mood_tags, artist_familiarity, production_quality)? Confirm: yes to proceed.",
+            "if": "Edit(data/songs.csv)"
+          },
+          {
+            "type": "prompt",
+            "prompt": "You're editing test profiles or evaluation data. This may invalidate previous evaluation results. Are you intentionally changing how the system is tested? Confirm: yes to proceed.",
+            "if": "Edit(src/adversarial_test.py|tests/test_recommender.py)"
+          },
+          {
+            "type": "prompt",
+            "prompt": "You're editing the playlist feature (src/playlist.py). If adding new scoring modes, please ensure they follow the Strategy pattern. Does this change integrate cleanly with the existing architecture? Confirm: yes to proceed.",
+            "if": "Edit(src/playlist.py)"
+          },
+          {
+            "type": "prompt",
+            "prompt": "You're about to edit a critical documentation file. Make sure this change aligns with the project scope. Proceed? (yes/no)",
+            "if": "Edit(CLAUDE.md|README.md|model_card.md|ai_interactions.md)"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You're creating a new file in the src/ directory. Does this new scoring strategy or recommendation component follow the established pattern and integrate with the Strategy interface? Confirm: yes to proceed.",
+            "if": "Write(src/*.py)"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You're about to delete a critical file (data/songs.csv, src files, or tests). This may break the recommender system. Are you sure? Type 'yes' to confirm deletion.",
+            "if": "Bash(rm.*(songs\\.csv|recommender\\.py|test_))"
+          },
+          {
+            "type": "command",
+            "command": "cd /Users/rikaraxkz/Desktop/CodePath/AI110/Music-AI-Applied-System-Project && python -m pytest -q > /tmp/pytest_output.txt 2>&1 && echo '{\"continue\":true,\"systemMessage\":\"✅ All tests passed. Ready to commit.\"}' || echo '{\"continue\":false,\"systemMessage\":\"❌ Tests failed. Fix them before committing.\"}'",
+            "timeout": 90,
+            "statusMessage": "Validating tests before commit...",
+            "if": "Bash(git commit*)"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/rikaraxkz/Desktop/CodePath/AI110/Music-AI-Applied-System-Project && python -c \"import sys; sys.path.insert(0, 'src'); from recommender import Recommender; r = Recommender(); print('✅ Recommender syntax is valid')\" 2>&1 || echo '⚠️  Warning: recommender.py may have syntax errors'",
+            "timeout": 10,
+            "statusMessage": "Validating recommender.py syntax...",
+            "if": "Edit(src/recommender.py)"
+          },
+          {
+            "type": "command",
+            "command": "cd /Users/rikaraxkz/Desktop/CodePath/AI110/Music-AI-Applied-System-Project && python -c \"import csv; rows = list(csv.DictReader(open('data/songs.csv'))); required = {'id','title','artist','genre','mood','energy','valence','danceability','tempo_bpm','acousticness','popularity','release_decade','mood_tags','artist_familiarity','production_quality'}; missing = required - set(rows[0].keys()) if rows else required; print(f'✅ songs.csv has all {len(rows)} songs with required columns') if not missing else print(f'⚠️  Missing columns: {missing}')\" 2>&1",
+            "timeout": 10,
+            "statusMessage": "Validating song catalog structure...",
+            "if": "Edit(data/songs.csv)"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Bash(git *)",
+      "Bash(python *)",
+      "Bash(pytest *)",
+      "Edit",
+      "Write"
+    ]
+  }
+}

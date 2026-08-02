@@ -1,6 +1,7 @@
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from difflib import SequenceMatcher
 import math
 import csv
 import logging
@@ -10,6 +11,57 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Genre relationship graph: explicit semantic relationships for fuzzy matching
+GENRE_RELATIONSHIPS = {
+    "pop": ["synth-pop", "indie-pop"],
+    "rock": ["metal", "indie-rock", "alternative"],
+    "electronic": ["synthwave", "synth-pop", "edm", "house", "techno"],
+    "lofi": ["lo-fi", "chill-hop"],
+    "hip-hop": ["trap", "rap"],
+    "jazz": ["smooth-jazz", "bebop"],
+    "indie": ["indie-rock", "indie-pop"],
+}
+
+def genre_similarity(genre_a: str, genre_b: str) -> float:
+    """
+    Compute semantic similarity between two genres (0.0 to 1.0).
+
+    SEMANTIC GENRE SIMILARITY: Fuzzy genre matching enables cross-genre discovery.
+    - Exact match: 1.0
+    - Related genres (e.g., pop → synth-pop): 0.75
+    - Similar keywords (e.g., electronic → synthwave): 0.3-0.6
+    - Different: 0.0-0.3
+
+    This replaces the old all-or-nothing (0 or 2.3) genre matching with a continuous scale.
+    """
+    if not genre_a or not genre_b:
+        return 0.0
+
+    a = genre_a.lower().strip()
+    b = genre_b.lower().strip()
+
+    if a == b:
+        return 1.0
+
+    # Check explicit relationships (bidirectional)
+    if a in GENRE_RELATIONSHIPS and b in GENRE_RELATIONSHIPS[a]:
+        return 0.75
+    if b in GENRE_RELATIONSHIPS and a in GENRE_RELATIONSHIPS[b]:
+        return 0.75
+
+    # String similarity with keyword matching boost
+    string_sim = SequenceMatcher(None, a, b).ratio()
+    a_words = set(a.split("-"))
+    b_words = set(b.split("-"))
+    shared_words = a_words & b_words
+
+    if shared_words:
+        keyword_boost = 0.3 * len(shared_words) / max(len(a_words), len(b_words))
+        string_sim = min(1.0, string_sim + keyword_boost)
+
+    return round(string_sim, 2)
+
 
 @dataclass
 class Song:
@@ -158,7 +210,6 @@ def _compute_score(user_prefs: Dict, song: Dict, weights: Dict, k: float = 1.0) 
             reasons.append(f"✓ {feature} good match ({song_val:.2f})")
 
     mood_match = song['mood'] == user_prefs.get('mood')
-    genre_match = song['genre'] == user_prefs.get('genre')
 
     if mood_match:
         score += weights['mood']
@@ -170,12 +221,18 @@ def _compute_score(user_prefs: Dict, song: Dict, weights: Dict, k: float = 1.0) 
         contributions['mood'] = (mood_penalty, 0.0, song['mood'], user_prefs.get('mood'))
         reasons.append(f"⚠️ mood mismatch ({song['mood']} ≠ {user_prefs.get('mood')})")
 
-    if genre_match:
-        score += weights['genre']
-        contributions['genre'] = (weights['genre'], 1.0, song['genre'], user_prefs.get('genre'))
-        reasons.append(f"🎸 genre matches ({song['genre']})")
-    else:
-        contributions['genre'] = (0.0, 0.0, song['genre'], user_prefs.get('genre'))
+    # SEMANTIC GENRE SIMILARITY: Fuzzy genre matching (replaces all-or-nothing)
+    genre_sim = genre_similarity(song['genre'], user_prefs.get('genre', ''))
+    genre_contribution = weights['genre'] * genre_sim
+    score += genre_contribution
+    contributions['genre'] = (genre_contribution, genre_sim, song['genre'], user_prefs.get('genre'))
+
+    if genre_sim >= 0.95:
+        reasons.append(f"🎸 genre matches exactly ({song['genre']})")
+    elif genre_sim >= 0.7:
+        reasons.append(f"🎸 genre similar ({song['genre']} ≈ {user_prefs.get('genre')})")
+    elif genre_sim >= 0.3:
+        reasons.append(f"~ genre related ({song['genre']} ↔ {user_prefs.get('genre')})")
 
     min_popularity = user_prefs.get('min_popularity', 30.0)
     song_popularity = song.get('popularity', 50.0) / 100.0
